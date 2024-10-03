@@ -15,6 +15,7 @@ unzip jamal-cmd-${VERSION}-distribution.zip -d target/JARS
 create_package() {
     local INSTALLER_TYPE=$1
     jpackage --input target/JARS \
+        --vendor "Peter Verhas" \
         --name jamal \
         --app-version ${VERSION} \
         --main-jar jamal-cmd-${VERSION}.jar \

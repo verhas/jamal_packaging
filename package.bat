@@ -23,6 +23,7 @@ REM Loop over the installer types to create both exe and msi installers
 for %%I in (exe msi) do (
     echo Creating installer type %%I
     jpackage --input target\JARS ^
+        --vendoe "Peter Verhas" ^
         --name jamal ^
         --app-version %VERSION% ^
         --main-jar jamal-cmd-%VERSION%.jar ^
