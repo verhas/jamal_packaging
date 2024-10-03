@@ -24,12 +24,22 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with: {java-version: '21', distribution: temurin}
+
     - name: Package application
       run: package.bat
       shell: cmd
+
+    - name: Upload Log Artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: jamal-post-image-log
+        path: ${{ runner.temp }}/jamal-post-image.log
+
     - name: Upload Package Artifact
       uses: actions/upload-artifact@v3
       with:

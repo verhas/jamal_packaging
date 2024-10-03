@@ -4,20 +4,34 @@
     Option Explicit
     On Error Resume Next
 
-    Dim installerDir
-    installerDir = WScript.Arguments(0)
-
-    ' Define the path to main.wxs
-    Dim wixFilePath
-    wixFilePath = installerDir & "\main.wxs"
-
     ' Create FileSystemObject
     Dim fso
     Set fso = CreateObject("Scripting.FileSystemObject")
 
+    ' Set up the log file path
+    Dim logFilePath
+    logFilePath = fso.GetSpecialFolder(2) & "\jamal-post-image.log" ' 2 refers to the Temp folder
+
+    ' Open the log file for appending
+    Dim logFile
+    Set logFile = fso.OpenTextFile(logFilePath, 8, True) ' 8 = ForAppending
+
+    logFile.WriteLine "Starting jamal-post-image.wsf"
+
+    ' Retrieve installer directory
+    Dim installerDir
+    installerDir = WScript.Arguments(0)
+    logFile.WriteLine "Installer directory: " & installerDir
+
+    ' Define the path to main.wxs
+    Dim wixFilePath
+    wixFilePath = installerDir & "\main.wxs"
+    logFile.WriteLine "WiX file path: " & wixFilePath
+
     ' Check if main.wxs exists
     If Not fso.FileExists(wixFilePath) Then
-      WScript.Echo "Error: main.wxs not found at " & wixFilePath
+      logFile.WriteLine "Error: main.wxs not found at " & wixFilePath
+      logFile.Close()
       WScript.Quit 1
     End If
 
@@ -28,27 +42,27 @@
     wixFile.Close()
 
     If Err.Number <> 0 Then
-      WScript.Echo "Error reading main.wxs: " & Err.Description
+      logFile.WriteLine "Error reading main.wxs: " & Err.Description
+      logFile.Close()
       WScript.Quit 1
     End If
 
     ' Define registry XML to add to main.wxs
     Dim registryXml
     registryXml = "
-      <DirectoryRef Id='TARGETDIR'>
-        <Component Id='AppPathsRegistry' Guid='{YOUR-GUID-HERE}'>
+      <DirectoryRef Id='APPLICATIONFOLDER'>
+        <Component Id='AppPathsRegistry' Guid='" & CreateObject("Scriptlet.TypeLib").Guid & "'>
           <RegistryKey Root='HKLM' Key='Software\Microsoft\Windows\CurrentVersion\App Paths\jamal.exe'>
-            <RegistryValue Name='' Type='string' Value='[INSTALLDIR]jamal.exe' KeyPath='yes'/>
+            <RegistryValue Name='' Type='string' Value='[APPLICATIONFOLDER]jamal.exe' KeyPath='yes'/>
           </RegistryKey>
         </Component>
       </DirectoryRef>
-      <Feature Id='DefaultFeature' Level='1'>
+      <Feature Id='DefaultFeature'>
         <ComponentRef Id='AppPathsRegistry'/>
       </Feature>
     "
 
-    ' Replace placeholders
-    registryXml = Replace(registryXml, "{YOUR-GUID-HERE}", CreateObject("Scriptlet.TypeLib").Guid)
+    logFile.WriteLine "Registry XML: " & registryXml
 
     ' Insert registryXml before </Wix>
     wixContent = Replace(wixContent, "</Wix>", registryXml & vbCrLf & "</Wix>")
@@ -59,12 +73,13 @@
     wixFile.Close()
 
     If Err.Number <> 0 Then
-      WScript.Echo "Error writing main.wxs: " & Err.Description
+      logFile.WriteLine "Error writing main.wxs: " & Err.Description
+      logFile.Close()
       WScript.Quit 1
     End If
 
-    ' Success
-    WScript.Echo "Successfully modified main.wxs"
+    logFile.WriteLine "Successfully modified main.wxs"
+    logFile.Close()
     WScript.Quit 0
   </script>
 </job>
