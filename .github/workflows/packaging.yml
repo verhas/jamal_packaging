@@ -17,7 +17,7 @@ jobs:
     - name: Upload Package Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ur-package-ubuntu
+        name: linux-x64
         path: |
           output/*.deb
   windows-latest:
@@ -33,7 +33,7 @@ jobs:
     - name: Upload Package Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ur-package-windows
+        name: windows-x64
         path: |
           output/*.exe
           output/*.msi
@@ -49,6 +49,21 @@ jobs:
     - name: Upload Package Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ur-package-macos
+        name: macos-arm64
+        path: |
+          output/*.pkg
+  macos-13:
+    runs-on: macos-13
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with: {java-version: '21', distribution: temurin}
+    - name: Package application
+      run: sh ./package.sh
+    - name: Upload Package Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-x64
         path: |
           output/*.pkg
