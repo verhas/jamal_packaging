@@ -1,9 +1,9 @@
 name: Packaging using jPackage
 on:
   push:
-    branches: [master]
+    branches: ["main"]
   pull_request:
-    branches: [master]
+    branches: ["main"]
 jobs:
   ubuntu-latest:
     runs-on: ubuntu-latest
