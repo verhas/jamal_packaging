@@ -3,39 +3,63 @@
   <script language="VBScript">
     Option Explicit
 
+    On Error Resume Next
+
+    ' Retrieve arguments
     Dim installerDir
     installerDir = WScript.Arguments(0)
 
+    ' Define paths
     Dim wixFilePath
     wixFilePath = installerDir & "\main.wxs"
 
-    Dim fso, wixFile, wixContent
+    ' Create FileSystemObject
+    Dim fso
     Set fso = CreateObject("Scripting.FileSystemObject")
-    Set wixFile = fso.OpenTextFile(wixFilePath, 1)
+
+    ' Check if the WiX file exists
+    If Not fso.FileExists(wixFilePath) Then
+      WScript.Echo "Error: WiX file not found at " & wixFilePath
+      WScript.Quit 1
+    End If
+
+    ' Read the WiX file
+    Dim wixFile, wixContent
+    Set wixFile = fso.OpenTextFile(wixFilePath, 1) ' ForReading
     wixContent = wixFile.ReadAll()
     wixFile.Close()
 
-    ' Registry entry XML
-    Dim registryXml
-    registryXml = "
-      <DirectoryRef Id=""TARGETDIR"">
-        <Component Id=""AppPathsRegistry"" Guid=""*"" KeyPath=""yes"">
-          <RegistryKey Root=""HKLM"" Key=""Software\Microsoft\Windows\CurrentVersion\App Paths\jamal.exe"">
-            <RegistryValue Type=""string"" Name="""" Value=""[INSTALLDIR]jamal.exe"" KeyPath=""yes""/>
-          </RegistryKey>
-        </Component>
-      </DirectoryRef>
-      <Feature Id=""DefaultFeature"" Level=""1"">
-        <ComponentRef Id=""AppPathsRegistry""/>
-      </Feature>
-    "
+    If Err.Number <> 0 Then
+      WScript.Echo "Error reading WiX file: " & Err.Description
+      WScript.Quit 1
+    End If
 
-    ' Insert the registry entry before the closing </Wix> tag
-    wixContent = Replace(wixContent, "</Wix>", registryXml & vbCrLf & "</Wix>")
+    ' Build the ExeCommand string
+    Dim exeCommand
+    exeCommand = "cmd.exe /c setx /M PATH \""[~]PATH;[INSTALLDIR]\"""
+
+    ' Build the CustomAction XML
+    Dim customActionXml
+    customActionXml = "<!-- Custom action to update PATH -->" & vbCrLf & _
+      "<CustomAction Id=""UpdatePath"" Execute=""deferred"" Return=""check"" Impersonate=""no"" Directory=""INSTALLDIR"" ExeCommand=""" & exeCommand & """/>" & vbCrLf & _
+      "<InstallExecuteSequence>" & vbCrLf & _
+      "  <Custom Action=""UpdatePath"" After=""InstallFiles"">NOT REMOVE</Custom>" & vbCrLf & _
+      "</InstallExecuteSequence>"
+
+    ' Insert the custom action before the closing </Wix> tag
+    wixContent = Replace(wixContent, "</Wix>", customActionXml & vbCrLf & "</Wix>")
 
     ' Write the modified content back to the WiX file
-    Set wixFile = fso.OpenTextFile(wixFilePath, 2)
+    Set wixFile = fso.OpenTextFile(wixFilePath, 2) ' ForWriting
     wixFile.Write wixContent
     wixFile.Close()
+
+    If Err.Number <> 0 Then
+      WScript.Echo "Error writing WiX file: " & Err.Description
+      WScript.Quit 1
+    End If
+
+    ' Script completed successfully
+    WScript.Quit 0
   </script>
 </job>
