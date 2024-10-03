@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job id="PostImageScript">
+  <script language="VBScript">
+    Option Explicit
+    On Error Resume Next
+
+    Dim installerDir
+    installerDir = WScript.Arguments(0)
+
+    ' Define the path to main.wxs
+    Dim wixFilePath
+    wixFilePath = installerDir & "\main.wxs"
+
+    ' Create FileSystemObject
+    Dim fso
+    Set fso = CreateObject("Scripting.FileSystemObject")
+
+    ' Check if main.wxs exists
+    If Not fso.FileExists(wixFilePath) Then
+      WScript.Echo "Error: main.wxs not found at " & wixFilePath
+      WScript.Quit 1
+    End If
+
+    ' Read main.wxs
+    Dim wixFile, wixContent
+    Set wixFile = fso.OpenTextFile(wixFilePath, 1) ' ForReading
+    wixContent = wixFile.ReadAll()
+    wixFile.Close()
+
+    If Err.Number <> 0 Then
+      WScript.Echo "Error reading main.wxs: " & Err.Description
+      WScript.Quit 1
+    End If
+
+    ' Define registry XML to add to main.wxs
+    Dim registryXml
+    registryXml = "
+      <DirectoryRef Id='TARGETDIR'>
+        <Component Id='AppPathsRegistry' Guid='{YOUR-GUID-HERE}'>
+          <RegistryKey Root='HKLM' Key='Software\Microsoft\Windows\CurrentVersion\App Paths\jamal.exe'>
+            <RegistryValue Name='' Type='string' Value='[INSTALLDIR]jamal.exe' KeyPath='yes'/>
+          </RegistryKey>
+        </Component>
+      </DirectoryRef>
+      <Feature Id='DefaultFeature' Level='1'>
+        <ComponentRef Id='AppPathsRegistry'/>
+      </Feature>
+    "
+
+    ' Replace placeholders
+    registryXml = Replace(registryXml, "{YOUR-GUID-HERE}", CreateObject("Scriptlet.TypeLib").Guid)
+
+    ' Insert registryXml before </Wix>
+    wixContent = Replace(wixContent, "</Wix>", registryXml & vbCrLf & "</Wix>")
+
+    ' Write back to main.wxs
+    Set wixFile = fso.OpenTextFile(wixFilePath, 2) ' ForWriting
+    wixFile.Write wixContent
+    wixFile.Close()
+
+    If Err.Number <> 0 Then
+      WScript.Echo "Error writing main.wxs: " & Err.Description
+      WScript.Quit 1
+    End If
+
+    ' Success
+    WScript.Echo "Successfully modified main.wxs"
+    WScript.Quit 0
+  </script>
+</job>

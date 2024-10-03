@@ -32,6 +32,5 @@ for %%I in (exe msi) do (
         --dest output ^
         --java-options -Xmx2048m ^
         --win-console ^
-        --win-wix-append registry.wxs ^
         --resource-dir packaging-resources
 )
