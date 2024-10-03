@@ -29,10 +29,11 @@ jobs:
       with: {java-version: '21', distribution: temurin}
     - name: Package application
       run: package.bat
+      shell: cmd
     - name: Upload Package Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ur-package-ubuntu
+        name: ur-package-windows
         path: |
           output/*.exe
           output/*.msi
@@ -48,6 +49,6 @@ jobs:
     - name: Upload Package Artifact
       uses: actions/upload-artifact@v3
       with:
-        name: ur-package-ubuntu
+        name: ur-package-macos
         path: |
           output/*.pkg
