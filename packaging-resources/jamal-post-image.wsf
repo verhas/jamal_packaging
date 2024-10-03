@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job id="PostImageScript">
+  <script language="VBScript">
+    Option Explicit
+
+    Dim installerDir
+    installerDir = WScript.Arguments(0)
+
+    Dim wixFilePath
+    wixFilePath = installerDir & "\main.wxs"
+
+    Dim fso, wixFile, wixContent
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    Set wixFile = fso.OpenTextFile(wixFilePath, 1)
+    wixContent = wixFile.ReadAll()
+    wixFile.Close()
+
+    ' Registry entry XML
+    Dim registryXml
+    registryXml = "
+      <DirectoryRef Id=""TARGETDIR"">
+        <Component Id=""AppPathsRegistry"" Guid=""*"" KeyPath=""yes"">
+          <RegistryKey Root=""HKLM"" Key=""Software\Microsoft\Windows\CurrentVersion\App Paths\jamal.exe"">
+            <RegistryValue Type=""string"" Name="""" Value=""[INSTALLDIR]jamal.exe"" KeyPath=""yes""/>
+          </RegistryKey>
+        </Component>
+      </DirectoryRef>
+      <Feature Id=""DefaultFeature"" Level=""1"">
+        <ComponentRef Id=""AppPathsRegistry""/>
+      </Feature>
+    "
+
+    ' Insert the registry entry before the closing </Wix> tag
+    wixContent = Replace(wixContent, "</Wix>", registryXml & vbCrLf & "</Wix>")
+
+    ' Write the modified content back to the WiX file
+    Set wixFile = fso.OpenTextFile(wixFilePath, 2)
+    wixFile.Write wixContent
+    wixFile.Close()
+  </script>
+</job>
