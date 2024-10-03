@@ -31,5 +31,6 @@ for %%I in (exe msi) do (
         --type %%I ^
         --dest output ^
         --java-options -Xmx2048m ^
+        --post-install "packaging-resources/postinst.bat" ^
         --resource-dir packaging-resources
 )
