@@ -1,5 +1,5 @@
-name: Packagin using jPackage
-'on':
+name: Packaging using jPackage
+on:
   push:
     branches: [master]
   pull_request:
