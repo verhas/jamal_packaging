@@ -1,0 +1,12 @@
+= Jamal Packaging project
+
+This project builds the command line interface installer kit for Jamal.
+To have a new version built, you first need the Jamal version to be built and deployed in Maven central.
+After then edit the file `VERSION` to contain the version number of the new release.
+Then commit the change and push it to GitHub, and the rest is performed by GitHub actions.
+
+To test a build on macOS on the development environment use the `packge_local.sh` script.
+This will create the installation kit from the version deployed in the local repository and create an installer.
+The version in this case can be a `-SNAPSHOT` version, however the installation kit version will be without `-SNAPSHOT`.
+This script is not meant to be used in production and was never tested on any other operating system.
+It is a modified version of the production build, it may work on different operating systems.

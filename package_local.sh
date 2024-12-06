@@ -6,7 +6,7 @@ VERSION=`cat VERSION`
 export VERSION
 
 echo "Version=$VERSION"
-wget https://repo.maven.apache.org/maven2/com/javax0/jamal/jamal-cmd/${VERSION}/jamal-cmd-${VERSION}-distribution.zip
+cp ~/.m2/repository/com/javax0/jamal/jamal-cmd/${VERSION}/jamal-cmd-${VERSION}-distribution.zip .
 mkdir -p target/JARS
 rm -rf target/JARS/*
 unzip jamal-cmd-${VERSION}-distribution.zip -d target/JARS
@@ -17,7 +17,7 @@ create_package() {
     jpackage --input target/JARS \
         --vendor "Peter Verhas" \
         --name jamal \
-        --app-version ${VERSION} \
+        --app-version ${VERSION%%-*} \
         --main-jar jamal-cmd-${VERSION}.jar \
         --main-class javax0.jamal.cmd.JamalMain \
         --type $INSTALLER_TYPE \
